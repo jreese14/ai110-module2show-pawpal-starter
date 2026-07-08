@@ -2,6 +2,7 @@ classDiagram
     class Owner {
         -name: String
         -available_time: int
+        -pets: List~Pet~
         +update_info()
         +set_available_time(time: int)
     }
@@ -10,6 +11,7 @@ classDiagram
         -name: String
         -species: String
         -age: int
+        -owner: Owner
         +update_info()
         +display_info()
     }
@@ -19,19 +21,22 @@ classDiagram
         -duration: int
         -priority: int
         -completed: boolean
+        -owner: Owner
+        -pet: Pet
         +mark_complete()
         +edit_task()
     }
 
     class Schedule {
+        -owner: Owner
         -tasks: List~Task~
-        -total_time: int
         +add_task(task: Task)
         +generate_schedule()
         +display_schedule()
     }
 
     Owner "1" --> "1..*" Pet : owns
-    Owner "1" --> "1" Schedule : has
-    Pet "1" --> "1..*" Task : has
+    Owner "1" --> "1" Schedule : creates
+    Task "1..*" --> "1" Pet : assigned_to
+    Task "1..*" --> "1" Owner : for
     Schedule "1" --> "1..*" Task : organizes

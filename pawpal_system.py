@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import List
 
@@ -8,6 +10,8 @@ class Task:
     duration: int
     priority: int
     completed: bool
+    owner: Owner
+    pet: Pet
 
     def mark_complete(self):
         pass
@@ -21,6 +25,7 @@ class Pet:
     name: str
     species: str
     age: int
+    owner: Owner
 
     def update_info(self):
         pass
@@ -33,6 +38,7 @@ class Pet:
 class Owner:
     name: str
     available_time: int
+    pets: List[Pet]
 
     def update_info(self):
         pass
@@ -43,8 +49,8 @@ class Owner:
 
 @dataclass
 class Schedule:
+    owner: Owner
     tasks: List[Task]
-    total_time: int
 
     def add_task(self, task: Task):
         pass
