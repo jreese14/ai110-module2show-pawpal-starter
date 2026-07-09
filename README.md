@@ -66,17 +66,14 @@ Total scheduled time: 80 minutes
 
 ```bash
 # Run the full test suite:
-pytest
-
-# Run with coverage:
-pytest --cov
+python -m pytest tests/test_pawpal.py -v
 ```
 
-Sample test output:
+The test suite includes **20 comprehensive tests** covering:
 
-```
-# Paste your pytest output here
-```
+- **Sorting Correctness**: Tasks sorted chronologically by scheduled_time, handling empty lists, single tasks, same-time stability, and None values
+- **Recurrence Logic**: Daily/weekly tasks create next-day/next-week instances; non-recurring tasks return None; property preservation across task chains
+- **Conflict Detection**: Multiple tasks at same time flagged with pet names; multiple conflicts at different times handled separately; unscheduled tasks ignored
 
 ## 📐 Smarter Scheduling
 
@@ -84,19 +81,19 @@ The scheduler organizes tasks by user-specified time slots and provides filterin
 
 | Feature | Method(s) | Description |
 |---------|-----------|-------------|
-| **Task Sorting** | `Schedule.sort_by_time()` | Sorts tasks chronologically by `scheduled_time`. O(n log n) single-pass algorithm. Tasks without times placed first. |
-| **Filtering** | `Schedule.filter_tasks(completed, pet_name)` | Filters tasks by completion status and/or pet name. Single-pass list comprehension with combined boolean conditions. |
-| **Conflict Detection** | `Schedule.detect_scheduling_conflicts()` | Detects multiple tasks at the same time slot and returns warning messages (lightweight, non-blocking). Groups tasks by time in O(n) pass. |
+| **Task Sorting** | `Schedule.sort_by_time()` | Sorts tasks chronologically by `scheduled_time`. |
+| **Filtering** | `Schedule.filter_tasks(completed, pet_name)` | Filters tasks by completion status and/or pet name. |
+| **Conflict Detection** | `Schedule.detect_scheduling_conflicts()` | Detects multiple tasks at the same time slot and returns warning message. |
 | **Recurring Tasks** | `Schedule.complete_task()` | Marks a task complete and auto-creates next occurrence for daily/weekly tasks using `timedelta`. Daily +1 day, weekly +7 days. |
 
 ## 📸 Demo Walkthrough
 
 Describe your app in numbered steps so a reader can follow along without watching a video:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+1. Enter owner name and available time, then click "Create Owner"
+2. Add a pet by entering its name, selecting species, then click "Add Pet"
+3. Create a task: enter title, duration, priority, and frequency, scheduled time and assign the task to a pet
+4. Click "Generate Schedule" to see the organized plan
+5. View the schedule across four tabs: full timeline, filter by pet, completion status, and analysis metrics
 
 **Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
