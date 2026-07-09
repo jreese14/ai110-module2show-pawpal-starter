@@ -18,7 +18,6 @@ class Task:
     due_date: datetime = field(default_factory=datetime.now)
 
     VALID_PRIORITIES = {"high", "medium", "low"}
-    PRIORITY_ORDER = {"high": 1, "medium": 2, "low": 3}
 
     def mark_complete(self):
         """Mark the task as completed."""

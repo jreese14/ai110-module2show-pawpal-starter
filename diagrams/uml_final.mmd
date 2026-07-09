@@ -1,0 +1,55 @@
+classDiagram
+    class Owner {
+        -name: String
+        -available_time: int
+        -pets: List~Pet~
+        +update_info(name: str, available_time: int)
+        +set_available_time(time: int)
+        +add_pet(pet: Pet)
+        +remove_pet(pet: Pet)
+    }
+
+    class Pet {
+        -name: String
+        -species: String
+        -age: int
+        -owner: Owner
+        +update_info(name: str, species: str, age: int)
+        +display_info()
+    }
+
+    class Task {
+        -task_name: String
+        -duration: int
+        -priority: String
+        -frequency: String
+        -completed: Boolean
+        -owner: Owner
+        -pet: Pet
+        -scheduled_time: String
+        -due_date: DateTime
+        -VALID_PRIORITIES: Set
+        +mark_complete()
+        +edit_task(task_name: str, duration: int, priority: str, frequency: str)
+    }
+
+    class Schedule {
+        -owner: Owner
+        -tasks: List~Task~
+        +add_task(task: Task)
+        +get_all_pet_tasks(): List~Task~
+        +generate_schedule(): List~Task~
+        +get_schedule_text(): String
+        +sort_by_time(tasks: List~Task~): List~Task~
+        +filter_tasks(completed: bool, pet_name: str): List~Task~
+        +complete_task(task: Task): Task
+        +detect_scheduling_conflicts(tasks: List~Task~): List~String~
+        +display_schedule()
+    }
+
+    Owner "1" --> "1..*" Pet : owns
+    Owner "1" --> "1" Schedule : has
+    Pet "1" <-- "1..*" Task : assigned_to
+    Task "1..*" --> "1" Owner : belongs_to
+    Schedule "1" --> "1..*" Task : manages
+    Schedule "1" --> "0..*" Task : creates_recurring

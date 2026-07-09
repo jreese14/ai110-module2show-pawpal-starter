@@ -87,11 +87,13 @@ if st.session_state.owner:
         with col3:
             priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
 
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
         with col1:
             frequency = st.selectbox("Frequency", ["daily", "weekly", "once"], index=0)
         with col2:
             selected_pet = st.selectbox("Pet", [pet.name for pet in st.session_state.owner.pets])
+        with col3:
+            scheduled_time = st.time_input("Scheduled time", value=None)
 
         if st.button("Add task", use_container_width=True):
             pet = next(p for p in st.session_state.owner.pets if p.name == selected_pet)
@@ -102,7 +104,8 @@ if st.session_state.owner:
                 frequency=frequency,
                 completed=False,
                 owner=st.session_state.owner,
-                pet=pet
+                pet=pet,
+                scheduled_time=scheduled_time.strftime("%H:%M") if scheduled_time else None
             )
             st.session_state.tasks.append(task)
             st.success(f"Task '{task_title}' added to {selected_pet}!")
@@ -129,19 +132,120 @@ if st.session_state.owner:
 
 st.divider()
 
-st.subheader("Build Schedule")
-st.caption("Generate an optimized schedule based on task priorities.")
+st.subheader("📅 Schedule & Analysis")
 
-if st.button("Generate schedule"):
+if st.button("Generate schedule", use_container_width=True):
     if st.session_state.owner and st.session_state.tasks:
         st.session_state.schedule = Schedule(owner=st.session_state.owner, tasks=st.session_state.tasks)
         st.success("Schedule generated!")
-        schedule_text = st.session_state.schedule.get_schedule_text()
-
-        total_time = sum(task.duration for task in st.session_state.tasks)
-        if total_time > st.session_state.owner.available_time:
-            st.warning(f"⚠️ Tasks exceed available time! ({total_time} min scheduled vs {st.session_state.owner.available_time} min available)")
-
-        st.code(schedule_text, language="")
     else:
         st.warning("Please create an owner and add at least one task first.")
+
+if st.session_state.schedule:
+    schedule = st.session_state.schedule
+
+    # Check for conflicts
+    scheduled_tasks = [t for t in schedule.tasks if t.scheduled_time]
+    conflicts = schedule.detect_scheduling_conflicts(scheduled_tasks)
+
+    if conflicts:
+        st.warning("⚠️ Scheduling Conflicts Detected:")
+        for conflict in conflicts:
+            st.warning(conflict)
+    else:
+        st.success("✅ No scheduling conflicts!")
+
+    # Check available time
+    total_time = sum(task.duration for task in scheduled_tasks)
+    if total_time > schedule.owner.available_time:
+        st.warning(f"⚠️ Tasks exceed available time: {total_time} min scheduled vs {schedule.owner.available_time} min available")
+    else:
+        st.info(f"✓ Tasks fit within available time: {total_time} min of {schedule.owner.available_time} min")
+
+    # Create tabs for different views
+    tab1, tab2, tab3, tab4 = st.tabs(["📋 Full Schedule", "🔍 Filter by Pet", "✓ Completion Status", "📊 Analysis"])
+
+    with tab1:
+        st.subheader("Timeline View")
+        if scheduled_tasks:
+            sorted_tasks = schedule.sort_by_time(scheduled_tasks)
+            schedule_data = []
+            for task in sorted_tasks:
+                status = "✓ Done" if task.completed else "⏳ Pending"
+                schedule_data.append({
+                    "Time": task.scheduled_time or "—",
+                    "Task": task.task_name,
+                    "Pet": task.pet.name,
+                    "Duration": f"{task.duration}min",
+                    "Priority": task.priority.upper(),
+                    "Status": status
+                })
+            st.table(schedule_data)
+        else:
+            st.info("No tasks with scheduled times yet.")
+
+    with tab2:
+        st.subheader("Filter by Pet")
+        pet_names = [pet.name for pet in schedule.owner.pets]
+        selected_pet = st.selectbox("Select pet", pet_names, key="filter_pet")
+
+        filtered = schedule.filter_tasks(pet_name=selected_pet)
+        if filtered:
+            filtered_data = []
+            for task in schedule.sort_by_time(filtered):
+                status = "✓" if task.completed else "⏳"
+                filtered_data.append({
+                    "Time": task.scheduled_time or "—",
+                    "Task": task.task_name,
+                    "Duration": f"{task.duration}min",
+                    "Priority": task.priority,
+                    "Status": status
+                })
+            st.table(filtered_data)
+            st.caption(f"{len(filtered)} task(s) for {selected_pet}")
+        else:
+            st.info(f"No tasks for {selected_pet}")
+
+    with tab3:
+        st.subheader("Task Completion Status")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.write("**Completed**")
+            completed = schedule.filter_tasks(completed=True)
+            if completed:
+                for task in completed:
+                    st.success(f"✓ {task.task_name} ({task.pet.name})")
+            else:
+                st.info("No completed tasks yet")
+
+        with col2:
+            st.write("**Pending**")
+            incomplete = schedule.filter_tasks(completed=False)
+            if incomplete:
+                for task in incomplete:
+                    st.warning(f"⏳ {task.task_name} ({task.pet.name})")
+            else:
+                st.info("All tasks complete!")
+
+    with tab4:
+        st.subheader("Schedule Analysis")
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.metric("Total Tasks", len(schedule.tasks))
+        with col2:
+            st.metric("Scheduled Time", f"{total_time}min")
+        with col3:
+            remaining = schedule.owner.available_time - total_time
+            st.metric("Time Remaining", f"{remaining}min")
+
+        st.divider()
+        st.write("**Summary**")
+        if scheduled_tasks:
+            earliest = min(t.scheduled_time for t in scheduled_tasks if t.scheduled_time)
+            latest = max(t.scheduled_time for t in scheduled_tasks if t.scheduled_time)
+            st.write(f"Schedule runs from **{earliest}** to **{latest}**")
+
+        completion_pct = (len(schedule.filter_tasks(completed=True)) / len(schedule.tasks) * 100) if schedule.tasks else 0
+        st.progress(completion_pct / 100, text=f"Completion: {completion_pct:.0f}%")
