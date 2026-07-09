@@ -134,6 +134,34 @@ class Schedule:
 
         return sorted_tasks
 
+    def get_schedule_text(self) -> str:
+        """Return the schedule as formatted text."""
+        organized = self.generate_schedule()
+
+        if not organized:
+            return f"No tasks scheduled for {self.owner.name}"
+
+        lines = [
+            f"=== Schedule for {self.owner.name} ===",
+            f"Available time: {self.owner.available_time} minutes",
+            ""
+        ]
+
+        total_time = 0
+        for task in organized:
+            status = "✓" if task.completed else "○"
+            lines.append(f"{task.scheduled_time} — {status} {task.task_name} (Pet: {task.pet.name}, {task.duration}min) [priority: {task.priority}]")
+            total_time += task.duration
+
+        lines.append("")
+        lines.append(f"Total scheduled time: {total_time} minutes")
+
+        if total_time > self.owner.available_time:
+            lines.append("")
+            lines.append(f"⚠️  WARNING: Tasks exceed available time by {total_time - self.owner.available_time} minutes!")
+
+        return "\n".join(lines)
+
     def display_schedule(self) -> None:
         """Display the schedule sorted by priority with scheduled times."""
         organized = self.generate_schedule()
