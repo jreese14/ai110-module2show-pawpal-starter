@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
+from datetime import datetime, timedelta
 
 
 @dataclass
@@ -14,6 +15,7 @@ class Task:
     owner: Owner
     pet: Pet
     scheduled_time: str = None
+    due_date: datetime = field(default_factory=datetime.now)
 
     VALID_PRIORITIES = {"high", "medium", "low"}
     PRIORITY_ORDER = {"high": 1, "medium": 2, "low": 3}
@@ -117,22 +119,19 @@ class Schedule:
         return all_tasks
 
     def generate_schedule(self) -> List[Task]:
-        """Organize tasks by priority, assign scheduled times, and check feasibility."""
-        from datetime import datetime, timedelta
-
+        """Organize tasks by scheduled time and check feasibility."""
         pet_tasks = self.get_all_pet_tasks()
-        sorted_tasks = sorted(pet_tasks, key=lambda t: Task.PRIORITY_ORDER[t.priority])
 
-        total_time = sum(task.duration for task in sorted_tasks)
+        # Filter out tasks without scheduled times and sort by time
+        scheduled_tasks = [t for t in pet_tasks if t.scheduled_time]
+        scheduled_tasks = self.sort_by_time(scheduled_tasks)
+
+        # Calculate total duration of scheduled tasks
+        total_time = sum(task.duration for task in scheduled_tasks)
         if total_time > self.owner.available_time:
             print(f"Warning: Total task duration ({total_time}) exceeds available time ({self.owner.available_time})")
 
-        start_time = datetime.strptime("08:00", "%H:%M")
-        for task in sorted_tasks:
-            task.scheduled_time = start_time.strftime("%H:%M")
-            start_time += timedelta(minutes=task.duration)
-
-        return sorted_tasks
+        return scheduled_tasks
 
     def get_schedule_text(self) -> str:
         """Return the schedule as formatted text."""
@@ -162,6 +161,70 @@ class Schedule:
 
         return "\n".join(lines)
 
+    def sort_by_time(self, tasks: List[Task] = None) -> List[Task]:
+        """Sort tasks by their scheduled time."""
+        if tasks is None:
+            tasks = self.tasks
+        return sorted(tasks, key=lambda t: t.scheduled_time or "")
+
+    def filter_tasks(self, completed: bool = None, pet_name: str = None) -> List[Task]:
+        """Filter tasks by completion status and/or pet name."""
+        filtered = self.tasks
+        if completed is not None:
+            filtered = [t for t in filtered if t.completed == completed]
+        if pet_name is not None:
+            filtered = [t for t in filtered if t.pet.name.lower() == pet_name.lower()]
+        return filtered
+
+    def complete_task(self, task: Task) -> Task:
+        """Mark a task as complete and create a new instance if it's recurring (daily/weekly)."""
+        task.mark_complete()
+
+        if task.frequency == "daily":
+            next_due = task.due_date + timedelta(days=1)
+        elif task.frequency == "weekly":
+            next_due = task.due_date + timedelta(days=7)
+        else:
+            return None
+
+        new_task = Task(
+            task_name=task.task_name,
+            duration=task.duration,
+            priority=task.priority,
+            frequency=task.frequency,
+            completed=False,
+            owner=task.owner,
+            pet=task.pet,
+            due_date=next_due
+        )
+        self.add_task(new_task)
+        return new_task
+
+    def detect_scheduling_conflicts(self, tasks: List[Task] = None) -> List[str]:
+        """Detect scheduling conflicts (same time) and return warning messages."""
+        if tasks is None:
+            tasks = self.tasks
+
+        if not tasks:
+            return []
+
+        warnings = []
+        time_slots = {}
+
+        for task in tasks:
+            if task.scheduled_time:
+                if task.scheduled_time not in time_slots:
+                    time_slots[task.scheduled_time] = []
+                time_slots[task.scheduled_time].append(task)
+
+        for time_slot, tasks_at_time in time_slots.items():
+            if len(tasks_at_time) > 1:
+                task_names = [f"{t.task_name} ({t.pet.name})" for t in tasks_at_time]
+                warning = f"⚠️  Scheduling conflict at {time_slot}: {', '.join(task_names)}"
+                warnings.append(warning)
+
+        return warnings
+
     def display_schedule(self) -> None:
         """Display the schedule sorted by priority with scheduled times."""
         organized = self.generate_schedule()
@@ -180,3 +243,9 @@ class Schedule:
             total_time += task.duration
 
         print(f"\nTotal scheduled time: {total_time} minutes")
+
+        conflicts = self.detect_scheduling_conflicts(organized)
+        if conflicts:
+            print()
+            for warning in conflicts:
+                print(warning)

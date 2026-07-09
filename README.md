@@ -47,11 +47,19 @@ pip install -r requirements.txt
 Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
 
 ```
-# e.g.:
-# Daily plan for Biscuit (Golden Retriever):
-#   08:00 — Morning walk (30 min) [priority: high]
-#   09:00 — Feeding (10 min) [priority: high]
-#   ...
+==================================================
+Today's Schedule
+==================================================
+
+=== Schedule for Alice ===
+Available time: 120 minutes
+
+08:00 — ○ Feed Buddy (Pet: Buddy, 10min) [priority: high]
+08:10 — ✓ Groom Whiskers (Pet: Whiskers, 25min) [priority: high]
+08:35 — ○ Play with Buddy (Pet: Buddy, 30min) [priority: medium]
+09:05 — ○ Clean Whiskers' litter box (Pet: Whiskers, 15min) [priority: low]
+
+Total scheduled time: 80 minutes
 ```
 
 ## 🧪 Testing PawPal+
@@ -72,14 +80,14 @@ Sample test output:
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
+The scheduler organizes tasks by user-specified time slots and provides filtering, conflict detection, and automatic recurring task management.
 
-| Feature | Method(s) | Notes |
-|---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Feature | Method(s) | Description |
+|---------|-----------|-------------|
+| **Task Sorting** | `Schedule.sort_by_time()` | Sorts tasks chronologically by `scheduled_time`. O(n log n) single-pass algorithm. Tasks without times placed first. |
+| **Filtering** | `Schedule.filter_tasks(completed, pet_name)` | Filters tasks by completion status and/or pet name. Single-pass list comprehension with combined boolean conditions. |
+| **Conflict Detection** | `Schedule.detect_scheduling_conflicts()` | Detects multiple tasks at the same time slot and returns warning messages (lightweight, non-blocking). Groups tasks by time in O(n) pass. |
+| **Recurring Tasks** | `Schedule.complete_task()` | Marks a task complete and auto-creates next occurrence for daily/weekly tasks using `timedelta`. Daily +1 day, weekly +7 days. |
 
 ## 📸 Demo Walkthrough
 
