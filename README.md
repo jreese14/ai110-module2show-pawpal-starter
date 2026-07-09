@@ -75,6 +75,40 @@ The test suite includes **20 comprehensive tests** covering:
 - **Recurrence Logic**: Daily/weekly tasks create next-day/next-week instances; non-recurring tasks return None; property preservation across task chains
 - **Conflict Detection**: Multiple tasks at same time flagged with pet names; multiple conflicts at different times handled separately; unscheduled tasks ignored
 
+Output:
+```
+============================= test session starts ==============================
+platform darwin -- Python 3.13.13, pytest-9.1.1, pluggy-1.6.0 -- /Users/Nae/ai110-module2show-pawpal-starter/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/Nae/ai110-module2show-pawpal-starter
+plugins: anyio-4.14.1
+collecting ... collected 20 items
+
+tests/test_pawpal.py::TestTaskCompletion::test_mark_complete PASSED      [  5%]
+tests/test_pawpal.py::TestTaskAddition::test_add_task_to_schedule PASSED [ 10%]
+tests/test_pawpal.py::TestTaskAddition::test_pet_task_retrieval PASSED   [ 15%]
+tests/test_pawpal.py::TestSortingCorrectness::test_sort_by_time_chronological_order PASSED [ 20%]
+tests/test_pawpal.py::TestSortingCorrectness::test_sort_empty_list PASSED [ 25%]
+tests/test_pawpal.py::TestSortingCorrectness::test_sort_single_task PASSED [ 30%]
+tests/test_pawpal.py::TestSortingCorrectness::test_sort_tasks_same_time PASSED [ 35%]
+tests/test_pawpal.py::TestSortingCorrectness::test_sort_with_none_times PASSED [ 40%]
+tests/test_pawpal.py::TestRecurrenceLogic::test_daily_task_creates_next_day_instance PASSED [ 45%]
+tests/test_pawpal.py::TestRecurrenceLogic::test_multiple_recurring_task_chain PASSED [ 50%]
+tests/test_pawpal.py::TestRecurrenceLogic::test_non_recurring_task_returns_none PASSED [ 55%]
+tests/test_pawpal.py::TestRecurrenceLogic::test_recurring_task_preserves_properties PASSED [ 60%]
+tests/test_pawpal.py::TestRecurrenceLogic::test_weekly_task_creates_next_week_instance PASSED [ 65%]
+tests/test_pawpal.py::TestConflictDetection::test_detect_conflict_empty_list PASSED [ 70%]
+tests/test_pawpal.py::TestConflictDetection::test_detect_conflict_mixed_scheduled_unscheduled PASSED [ 75%]
+tests/test_pawpal.py::TestConflictDetection::test_detect_conflict_no_scheduled_times PASSED [ 80%]
+tests/test_pawpal.py::TestConflictDetection::test_detect_conflict_three_tasks_same_time PASSED [ 85%]
+tests/test_pawpal.py::TestConflictDetection::test_detect_conflict_two_tasks_same_time PASSED [ 90%]
+tests/test_pawpal.py::TestConflictDetection::test_detect_multiple_conflict_times PASSED [ 95%]
+tests/test_pawpal.py::TestConflictDetection::test_detect_no_conflict_different_times PASSED [100%]
+
+============================== 20 passed in 0.03s ==============================
+```
+Confidence Level: 5
+
 ## 📐 Smarter Scheduling
 
 The scheduler organizes tasks by user-specified time slots and provides filtering, conflict detection, and automatic recurring task management.
